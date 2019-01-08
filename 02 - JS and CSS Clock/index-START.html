@@ -9,9 +9,9 @@
 
     <div class="clock">
       <div class="clock-face">
-        <div class="hand hour-hand"></div>
-        <div class="hand min-hand"></div>
-        <div class="hand second-hand"></div>
+        <div class="hand hand_hours"></div>
+        <div class="hand hand_mins"></div>
+        <div class="hand hand_seconds"></div>
       </div>
     </div>
 
@@ -62,13 +62,79 @@
       background: black;
       position: absolute;
       top: 50%;
+        left: 50%;
+        transform-origin: 0 50%;
+        transition: transform 50ms ease-in-out;
     }
 
+    .hand_hours {
+      width: 35%;
+    }
+
+    .hand_mins {
+      height: 4px;
+    }
+
+    .hand_seconds {
+      height: 2px;
+    }
   </style>
 
   <script>
+      const units = {
+        hours: 'hours',
+        mins: 'mins',
+        seconds: 'seconds',
+      };
+      const initialHandRotation = -90;
 
+      updateClock();
+      setInterval(updateClock, 1000);
 
+      function updateClock() {
+        const now = new Date();
+
+        const values = {
+          hours: now.getHours(),
+          mins: now.getMinutes(),
+          seconds: now.getSeconds(),
+        };
+
+        for (unit in units) {
+          const rotation = getHandRotationDeg(values[unit], units[unit]);
+          setHandRotation(rotation, units[unit]);
+        }
+      }
+
+      function getHandRotationDeg(value, unit) {
+        const fullCircle = 360;
+        let segmentation = 12;
+        let scaledValue = value;
+        if (unit === units.hours) {
+          scaledValue = value % segmentation;
+        }
+        if (unit === units.mins || unit === units.seconds) {
+          segmentation = 60;
+        }
+        const rotation = (fullCircle / segmentation) * scaledValue;
+        return initialHandRotation + rotation;
+      }
+
+      function setHandRotation(rotationDeg, unit) {
+        const hand = document.querySelector(`.hand_${unit}`);
+        // disable transition when circle ends
+        if (rotationDeg === initialHandRotation) {
+          const savedTransition = hand.style.transition;
+          hand.style.transition = 'none';
+        }
+
+        hand.style.transform = `rotate(${rotationDeg}deg)`;
+
+        // enable transition afterwards
+        if (typeof savedTransition !== 'undefined') {
+          hand.style.transition = savedTransition;
+        }
+      }
   </script>
 </body>
 </html>
